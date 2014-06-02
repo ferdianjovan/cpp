@@ -15,9 +15,24 @@ class my_list
 {
     public:
         my_list(): head(0), cursor(0){}
-        my_list(const int* arr, int n);
+        my_list(const int* arr, int n) //: head(0), cursor(0)
+        {
+            head = 0;
+            for(int i = n - 1; i > -1; --i)
+                head = new list_element(arr[i],head);
+            cursor = head;
+        };
 
-        ~my_list(); // destructor
+        ~my_list()
+        {
+            cout << "We destruct everything.";
+            for(cursor = head; cursor != 0;)
+            {
+                cursor = head -> next;
+                delete head;
+                head = cursor;
+            } // check memory leaks from valgrind
+        }; // destructor
 
         void prepend(int n)
         {
@@ -59,10 +74,11 @@ class my_list
 
 int main()
 {
-    my_list test;
+    int data[5] = {1,2,3};
+    my_list test(data,5);
+    test.print();
     test.prepend(3);
     test.prepend(7);
-    test.print();
 
     return 0;
 }

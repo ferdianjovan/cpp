@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <sstream>
+#include <ctime>
 
 using namespace std;
 
@@ -108,22 +110,20 @@ vector<int> dijkstra_shortest_path(int src, int dest, vector< vector <int> > mat
 
     while(closed_state[closed_state.size() - 1][0] != dest)
     {
-
         // updating the open state
         update_open_state(open_state, closed_state, matrix_data);
 
         // picking the least cost state
-        next_state = pick_least(open_state);
-
-        if(next_state.empty())
+        if(open_state.empty())
             break;
 
+        next_state = pick_least(open_state);
         temp[0] = next_state[0];
         temp[1] = next_state[2];
         closed_state.push_back(temp);
     }
 
-    if(next_state[0] == dest)
+    if(!next_state.empty() && next_state[0] == dest)
         shortest_path = construct_shortest_path(src, dest, open_state);
 
     return shortest_path;
@@ -140,53 +140,67 @@ bool is_connected(int src, int dest, vector< vector<int> > matrix_data)
     return is_it_really_connected;
 }
 
-int main()
+vector< vector<int> > generate_graph(int size)
 {
-    int src = 7, dest = 8;
-    vector<int> shortest_path;
-    vector<int> row_data(9,0);
-    vector< vector <int> > undirected_graph(9, row_data);
+    vector<int> row_data(size,0);
+    vector< vector <int> > undirected_graph(size, row_data);
 
-    undirected_graph[0][2] = 1;
-    undirected_graph[1][3] = 4;
-    undirected_graph[1][7] = 3;
-    undirected_graph[2][3] = 3;
-    undirected_graph[2][4] = 1;
-    undirected_graph[3][5] = 5;
-    undirected_graph[3][8] = 3;
-    undirected_graph[4][6] = 2;
-    undirected_graph[4][8] = 4;
-    undirected_graph[6][4] = 2;
-    undirected_graph[6][8] = 3;
-    undirected_graph[7][0] = 4;
-    undirected_graph[7][1] = 3;
-    undirected_graph[7][3] = 7;
-    undirected_graph[8][5] = 5;
+    for(int i = 0; i < size; i++)
+        for(int j = 0; j < i; j++)
+            // you can call rand  after that
+            undirected_graph[i][j] = undirected_graph[j][i] = (rand()%100) / 10;
 
-    cout << "Matrix of undirected graph" << endl;
-    for(int i = 0; i < undirected_graph.size(); ++i)
+    return undirected_graph;
+}
+
+int main(int argc, char** argv)
+{
+    int src, dest, size;
+
+    srand(time(0)); // call srand once and only once when your program starts
+    // to avoid getting the same value
+
+    if(argc == 3)
     {
-        for(int j = 0; j < undirected_graph[i].size(); ++j)
-            cout << undirected_graph[i][j] << " ";
-        cout << "\n";
+        stringstream(argv[1]) >> src;
+        stringstream(argv[2]) >> dest;
+        stringstream(argv[3]) >> size;
+        vector< vector<int> > undirected_graph = generate_graph(size);
+
+        vector<int> shortest_path;
+
+        cout << "Matrix of undirected graph" << endl;
+        for(int i = 0; i < undirected_graph.size(); ++i)
+        {
+            for(int j = 0; j < undirected_graph[i].size(); ++j)
+                cout << undirected_graph[i][j] << " ";
+            cout << "\n";
+        }
+
+        shortest_path = dijkstra_shortest_path(src, dest, undirected_graph);
+
+        cout << "The shortest path from " << src << " to " << dest << " is " << endl;
+
+        if(!shortest_path.empty())
+            for(int i = 0; i < shortest_path.size(); ++i)
+                if(i == shortest_path.size() - 1)
+                    cout << shortest_path[i];
+                else
+                    cout << shortest_path[i] << " -> ";
+        else
+            cout << "not possible to be found.";
+        cout << endl;
+
+        if(is_connected(src, dest, undirected_graph))
+            cout << "It is really true that " << src << " and " << dest << " is really connected";
     }
-
-    shortest_path = dijkstra_shortest_path(src, dest, undirected_graph);
-
-    cout << "The shortest path from 7(source state) to 8(goal state) is " << endl;
-
-    if(!shortest_path.empty())
-        for(int i = 0; i < shortest_path.size(); ++i)
-            if(i == shortest_path.size() - 1)
-                cout << shortest_path[i];
-            else
-                cout << shortest_path[i] << " -> ";
     else
-        cout << "not possible to be found.";
-    cout << endl;
-
-    if(is_connected(7, 8, undirected_graph))
-        cout << "It is really true that 7 and 8 is really connected";
+        cout << "Please give the source and the destination state and the size of the graph" << endl;
 
     return 0;
 }
+
+// Primal MST algorithm select the least cost in the open sets based on nodes
+// Kruskal MST algorithm select the next the least edges (based on nodes)
+// in Kruskal, you sort the edges before you select, whereas in Primal you select the node
+// with least cost.
