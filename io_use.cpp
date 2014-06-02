@@ -1,11 +1,12 @@
-#include <fstream>
+#include <fstream> // library to manipulate file
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <iterator>
+#include <algorithm> // sort algorithm comes from this
+#include <iterator> // to use istream_iterator
 
 using namespace std;
 
+// obtain the word (bunch of letters separated by space)
 void getw(string& t, ifstream& in)
 {
     in >> t;
@@ -37,6 +38,7 @@ int main()
         cout << data << '\t';
     cout << endl;
 
+    // get input from file
     ifstream in("data");
     vector<string> w(1000);
 
